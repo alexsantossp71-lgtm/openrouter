@@ -1,1 +1,65 @@
-index
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerador Playground v2.5</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; }
+        #resultado img { max-width: 100%; border-radius: 10px; margin-top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        input { padding: 10px; width: 60%; font-size: 16px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; background: #000; color: #fff; border: none; }
+        button:disabled { background: #ccc; }
+    </style>
+</head>
+<body>
+
+    <h1>Gerador de Imagens AI</h1>
+    <p>Digite o que você quer ver:</p>
+    
+    <input type="text" id="prompt" placeholder="Ex: Um gato astronauta cyberpunk">
+    <button onclick="fazerMagica()" id="btn">Gerar</button>
+    
+    <div id="status" style="margin-top: 20px; color: gray;"></div>
+    <div id="resultado"></div>
+
+    <script>
+        async function fazerMagica() {
+            // COLE AQUI O LINK QUE VOCÊ COPIOU DO CODESPACES (COM /gerar NO FINAL)
+            const URL_DO_BACKEND = "https://SEU-CODESPACE-5000.app.github.dev/gerar";
+            
+            const prompt = document.getElementById('prompt').value;
+            const btn = document.getElementById('btn');
+            const status = document.getElementById('status');
+            const resultado = document.getElementById('resultado');
+
+            if (!prompt) return alert("Escreva algo!");
+
+            btn.disabled = true;
+            status.innerText = "A IA está desenhando... (aguarde uns 15s)";
+            resultado.innerHTML = "";
+
+            try {
+                const response = await fetch(URL_DO_BACKEND, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                const data = await response.json();
+
+                if (data.url) {
+                    resultado.innerHTML = `<img src="${data.url}" alt="Imagem gerada">`;
+                    status.innerText = "Pronto!";
+                } else {
+                    status.innerText = "Erro: " + (data.erro || "Desconhecido");
+                }
+            } catch (e) {
+                status.innerText = "Erro de conexão. O backend está rodando?";
+                console.error(e);
+            }
+
+            btn.disabled = false;
+        }
+    </script>
+</body>
+</html>
