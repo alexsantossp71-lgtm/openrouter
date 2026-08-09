@@ -1,0 +1,7 @@
+# Configure o token
+git remote set-url origin https://SEU-USUARIO:SEU-TOKEN@github.com/alexsantossp71-lgtm/openrouter.git
+
+# Adicione e push os workflows
+git add .github/workflows/
+git commit -m "Adiciona workflows CI/CD"
+git push origin arena/019fe3dd-openrouter
