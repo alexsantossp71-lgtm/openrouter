@@ -1,0 +1,34 @@
+# Dependências
+node_modules/
+vendor/
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+out/
+.next/
+.nuxt/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testes
+coverage/
+.nyc_output/
+
+# Sistema
+*.pyc
+__pycache__/
+*.pyo
