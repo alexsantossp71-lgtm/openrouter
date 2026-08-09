@@ -1,0 +1,127 @@
+# =============================================================================
+# config.example.yml — Configuração do AI Image Generator
+# =============================================================================
+# Copie para config.yml e ajuste conforme necessário:
+#   cp config.example.yml config.yml
+#
+# Variáveis de ambiente (via GitHub Secrets ou .env):
+#   REPLICATE_API_TOKEN        — chave da API Replicate
+#   RAILWAY_TOKEN              — token do Railway (deploy)
+#   RENDER_API_KEY             — API key do Render (deploy)
+#   RENDER_SERVICE_ID          — ID do serviço Render (produção)
+#   RENDER_SERVICE_ID_STAGING  — ID do serviço Render (staging, opcional)
+#   SLACK_WEBHOOK_URL          — webhook do Slack (notificações)
+#   DISCORD_WEBHOOK_URL        — webhook do Discord (notificações)
+#   SENDGRID_API_KEY           — API key do SendGrid (e-mail)
+#   NOTIFY_EMAIL               — e-mail para receber notificações
+#   NOTIFY_FROM_EMAIL          — e-mail "from" para e-mails de deploy
+# =============================================================================
+
+# -------------------------------------------------------------------------
+# Modelo de IA
+# -------------------------------------------------------------------------
+model:
+  # Modelo Replicate (pode ser sobrescrito via variável REPLICATE_MODEL)
+  replicate:
+    model: "playgroundai/playground-v2.5-1024px-aesthetic:61260cd6b4747eb3b8178875501d51a66275811c75949d21df263300072b7a95"
+    default_width: 1024
+    default_height: 1024
+    default_steps: 25
+    default_scheduler: "DPMSolver++"
+    max_prompt_length: 1000
+    min_prompt_length: 3
+    # Palavras/chaves proibidas (regex, case-insensitive)
+    forbidden_patterns:
+      - "\\b(nude|nudity|sex|porn|naked)\\b"
+      - "\\b(kill|murder|blood|gore|violence)\\b"
+
+  # Modelos alternativos disponíveis (para futura expansão)
+  alternatives:
+    - name: "SDXL"
+      model: "stabilityai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b"
+    - name: "Flux"
+      model: "black-forest-labs/flux-1-schnell:0465d7b79e81949a72feac21ac5703642078f5f66f25bfb7c5c4889af1edc8cc"
+
+# -------------------------------------------------------------------------
+# Servidor
+# -------------------------------------------------------------------------
+server:
+  host: "0.0.0.0"
+  port: 5000
+  debug: false  # definir como true apenas em desenvolvimento
+
+# -------------------------------------------------------------------------
+# Rate Limiting
+# -------------------------------------------------------------------------
+rate_limit:
+  enabled: true
+  requests_per_window: 10      # quantidade de requests permitidos
+  window_seconds: 60           # janela de tempo em segundos
+
+# -------------------------------------------------------------------------
+# CORS
+# -------------------------------------------------------------------------
+cors:
+  # Origens permitidas (separadas por vírgula na variável ALLOWED_ORIGINS)
+  # Deixar vazio = CORS aberto (só para desenvolvimento!)
+  allowed_origins:
+    - "https://seu-app.railway.app"
+    - "https://seu-app.onrender.com"
+    - "https://seu-codigo-codespaces.app.github.dev"
+    - "http://localhost:5000"
+
+# -------------------------------------------------------------------------
+# Deploy
+# -------------------------------------------------------------------------
+deploy:
+  railway:
+    enabled: true
+    environment: "production"
+
+  render:
+    enabled: true
+    service_id_production: "srv-xxxxxxxxxxxx"      # substituir
+    service_id_staging: "srv-yyyyyyyyyyyy"          # substituir (ou igual ao production)
+
+# -------------------------------------------------------------------------
+# Health Check
+# -------------------------------------------------------------------------
+healthcheck:
+  enabled: true
+  endpoint: "/health"
+  timeout_seconds: 300
+  retries: 5
+  interval_seconds: 10
+
+# -------------------------------------------------------------------------
+# Notificações
+# -------------------------------------------------------------------------
+notifications:
+  slack:
+    enabled: false
+    webhook_url: ""  # SLACK_WEBHOOK_URL nas secrets
+
+  discord:
+    enabled: false
+    webhook_url: ""  # DISCORD_WEBHOOK_URL nas secrets
+
+  email:
+    enabled: false
+    sendgrid_api_key: ""     # SENDGRID_API_KEY nas secrets
+    to_email: ""             # NOTIFY_EMAIL nas secrets
+    from_email: "deploy-bot@ai-image-generator.local"  # NOTIFY_FROM_EMAIL
+
+  # O que notificar
+  events:
+    deploy_success: true
+    deploy_failure: true
+    healthcheck_failure: true
+    rollback: true
+
+# -------------------------------------------------------------------------
+# Rollback
+# -------------------------------------------------------------------------
+rollback:
+  enabled: true
+  on_failure: true        # fazer rollback se health check falhar?
+  force_rollback: false   # forçar rollback mesmo se deploy "parece" sucesso?
