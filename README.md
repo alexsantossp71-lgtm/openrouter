@@ -1,94 +1,125 @@
-# 🎨 openrouter — Gerador de Imagens IA
+# Gerador de Imagens IA — OpenRouter
 
-Gerador de imagens por Inteligência Artificial usando **Flask + Replicate API**
-(modelo Playground v2.5).
+![CI](https://img.shields.io/github/actions/workflow/status/alexsantossp71-lgtm/openrouter/ci.yml?label=CI)
+![Pages](https://img.shields.io/github/actions/workflow/status/alexsantossp71-lgtm/openrouter/pages.yml?label=Pages)
+![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker)
+![License](https://img.shields.io/github/license/alexsantossp71-lgtm/openrouter)
+![Status](https://img.shields.io/badge/status-ativo-009688)
 
-> ⚠️ **Atenção:** este repositório não possui relação com a plataforma
-> [OpenRouter](https://openrouter.ai). O nome é apenas legado.
+Backend Flask que expõe `POST /gerar` integrado ao **Replicate**.
+Recebe `prompt`, `width`, `height`, `steps`, retorna a URL da imagem
+gerada. Serve um front estático (`index.html`) com campo de configuração
+da URL do backend (persistido no `localStorage`).
 
-## ✨ Funcionalidades
+> ⚠️ Requer chave da API **Replicate** (`REPLICATE_API_TOKEN`). O container
+> não inclui chaves — passe via `--env-file` ou variável no deploy.
 
-- Geração de imagens a partir de um prompt de texto
-- Parâmetros configuráveis: largura, altura e número de passos
-- **Rate limiting** por IP (proteção básica contra abuso)
-- **Health check** (`/health`)
-- Frontend com **dark theme**, validação de prompt e **histórico** local
+---
 
-## 📦 Tecnologias
+## Estrutura
 
-- **Backend:** Python (Flask) + Gunicorn
-- **Frontend:** HTML/CSS/JavaScript puro (sem build)
-- **IA:** Replicate API (Playground v2.5)
+```
+openrouter/
+├── .github/workflows/
+│   ├── ci.yml         # Testes + lint + build Docker
+│   └── pages.yml     # Deploy do front estático
+├── app.py            # Flask + rate limit + /health
+├── Dockerfile        # python:3.12-slim + gunicorn
+├── requirements.txt  # runtime
+├── requirements-dev.txt # pytest + mocks
+├── static/           # Front-end (index.html, script.js, style.css)
+├── tests/            # Pytest (mocks do replicate.run)
+├── .env.example
+└── LICENSE
+```
 
-## 🚀 Como rodar
+---
 
-### 1. Configurar
+## Executar local
 
 ```bash
+python -m venv venv
+venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env        # edite e preencha a chave
-export REPLICATE_API_TOKEN=r8_sua_token_aqui   # ou carregue pelo .env
-```
 
-### 2. Rodar (dev)
+# Copie .env.example -> .env e adicione REPLICATE_API_TOKEN
+cp .env.example .env
 
-```bash
 python app.py
+# http://localhost:5000
 ```
 
-Acesse `http://localhost:5000`.
+---
 
-### 3. Gerar imagem
-
-Via API:
+## Executar com Docker
 
 ```bash
-curl -X POST http://localhost:5000/gerar \
-  -H "Content-Type: application/json" \
-  -d '{"prompt": "Um gato astronauta cyberpunk"}'
+docker build -t openrouter .
+docker run -d -p 5000:5000 --env-file .env openrouter
 ```
 
-Via Docker:
+---
+
+## Executar testes
 
 ```bash
-docker build -t ai-image-gen .
-docker run -p 5000:5000 --env-file .env ai-image-gen
+pip install -r requirements-dev.txt
+pytest -v
 ```
 
-## 📁 Estrutura
+---
 
+## Endpoints
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET`  | `/`  | Front estático (index.html) |
+| `GET`  | `/health` | Health (`{"status":"ok"}`) |
+| `POST` | `/gerar` | Gera imagem via Replicate |
+
+### `POST /gerar`
+
+Body JSON:
+
+```json
+{
+  "prompt": "sunset on Mars",
+  "width": 1024,
+  "height": 1024,
+  "steps": 25
+}
 ```
-├── app.py                  # Backend Flask
-├── requirements.txt        # Dependências Python
-├── .env.example            # Variáveis de ambiente (modelo)
-├── Dockerfile              # Container de produção
-├── static/                 # Frontend estático (deployed no GitHub Pages)
-│   ├── index.html
-│   ├── style.css
-│   └── script.js
-└── .github/workflows/
-    ├── ci.yml              # Validação em PR/push
-    └── pages.yml           # Deploy do frontend no GitHub Pages
-```
 
-## 🌐 GitHub Pages
+Respostas:
 
-O frontend estático é publicado automaticamente em
-`https://<usuario>.github.io/<repositorio>/` pela action `pages.yml`.
-Como o Pages serve apenas conteúdo estático, a **geração de imagens exige o
-backend rodando** — configure a URL do backend no formulário do frontend
-(campo "URL do backend").
+- `200`: `{ url: "https://..." }`
+- `400`: `{ erro: "O campo 'prompt' é obrigatório." }` ou `Prompt muito longo.`
+- `429`: `{ erro: "Limite de requisições atingido." }`
+- `500`: `{ erro: "..." }` (erro do Replicate)
 
-## 🔑 Variáveis de ambiente
+---
 
-| Variável | Obrigatória | Descrição |
-|----------|-------------|-----------|
-| `REPLICATE_API_TOKEN` | ✅ | Chave da API Replicate |
-| `REPLICATE_MODEL` | ❌ | Modelo Replicate (padrão: Playground v2.5 1024px) |
-| `RATE_LIMIT` | ❌ | Máx. de requisições por janela (padrão: 5) |
-| `RATE_LIMIT_WINDOW` | ❌ | Janela em segundos (padrão: 60) |
-| `PORT` | ❌ | Porta do servidor (padrão: 5000) |
+## Variáveis de ambiente
 
-## 📄 Licença
+| Variável | Padrão | Descrição |
+|----------|--------|-----------|
+| `REPLICATE_API_TOKEN` | obrigatório | Chave do Replicate |
+| `REPLICATE_MODEL` | `playground...` | Modelo padrão |
+| `RATE_LIMIT` | 5 | Requisições por minuto |
+| `RATE_LIMIT_WINDOW` | 60 | Janela de segundos |
+| `PORT` | 5000 | Porta do servidor |
 
-MIT — veja [LICENSE](LICENSE).
+---
+
+## Limitações conhecidas
+
+- Rate limiter é **em memória** (não persiste em múltiplos workers).
+- Não armazena imagens; apenas retorna URL do Replicate (link temporário).
+- Sem autenticação (use proxy ou gateway para proteger `/gerar` em produção).
+
+---
+
+## Licença
+
+MIT — veja `LICENSE`.

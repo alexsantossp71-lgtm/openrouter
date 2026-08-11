@@ -32,5 +32,14 @@ jobs:
           pip install flake8
           flake8 app.py --max-line-length=120 --ignore=E501,W503 --statistics || true
 
+      - name: Instalar dependências de teste
+        run: |
+          pip install -r requirements-dev.txt
+
+      - name: Testes (pytest)
+        env:
+          REPLICATE_API_TOKEN: dummy
+        run: pytest -v
+
       - name: Validar Dockerfile
         run: docker build -t ai-image-gen:test .
