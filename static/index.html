@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Imagens IA</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>🎨 Gerador de Imagens IA</h1>
+        <p>Descreva o que você quer ver e deixe a IA desenhar.</p>
+    </header>
+
+    <main>
+        <section class="card">
+            <form id="form-gerar" autocomplete="off">
+                <label for="prompt">Prompt</label>
+                <textarea id="prompt" rows="3"
+                    placeholder="Ex: Um gato astronauta cyberpunk no estilo synthwave"
+                    maxlength="2000" required></textarea>
+
+                <div class="opcoes">
+                    <label>Largura
+                        <select id="width">
+                            <option value="512">512</option>
+                            <option value="768">768</option>
+                            <option value="1024" selected>1024</option>
+                        </select>
+                    </label>
+                    <label>Altura
+                        <select id="height">
+                            <option value="512">512</option>
+                            <option value="768">768</option>
+                            <option value="1024" selected>1024</option>
+                        </select>
+                    </label>
+                    <label>Passos
+                        <select id="steps">
+                            <option value="15">15</option>
+                            <option value="25" selected>25</option>
+                            <option value="35">35</option>
+                        </select>
+                    </label>
+                </div>
+
+                <label for="backend">URL do backend</label>
+                <input type="url" id="backend" placeholder="https://localhost:5000/gerar">
+
+                <button type="submit" id="btn-gerar">🪄 Gerar imagem</button>
+            </form>
+
+            <p id="status" class="status" role="status" aria-live="polite"></p>
+
+            <figure id="resultado" class="resultado" hidden>
+                <img id="imagem" alt="Imagem gerada pela IA">
+                <a id="download" class="botao-secundario" download="imagem-gerada.png">⬇ Baixar imagem</a>
+            </figure>
+        </section>
+
+        <section class="card" id="historico-section">
+            <h2>Últimas imagens</h2>
+            <div id="historico" class="historico"></div>
+        </section>
+    </main>
+
+    <footer>
+        <p>Gerado com <a href="https://replicate.com" target="_blank" rel="noopener">Replicate</a> · Playground v2.5</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
